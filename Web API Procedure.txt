@@ -1,0 +1,73 @@
+//Web API
+
+
+ALTER PROC [dbo].[sp_Product](@in_type int ,@inp_prod_id INT,
+                      @inp_prod_name VARCHAR(50),
+					  @inp_prod_price DECIMAL(10,2),
+					  @inp_prod_qty INT)
+AS
+BEGIN  
+   	DECLARE @FLD_MESSAGE NVARCHAR(100), @FLD_ACTION_STATUS INT
+	BEGIN TRY
+		IF @in_type=1  -- select all
+		   BEGIN
+		       SELECT * FROM tbl_Product;
+		   END
+	    ELSE IF @in_type=2  -- insert
+		   BEGIN
+		       INSERT INTO tbl_Product VALUES(@inp_prod_name,@inp_prod_price,@inp_prod_qty);
+			   IF @@ROWCOUNT>0
+			   BEGIN
+					SET @FLD_ACTION_STATUS =0;
+					SET @FLD_MESSAGE='SUCCESS';
+			  END
+			  ELSE
+			  BEGIN
+			  		SET @FLD_ACTION_STATUS =1;
+					SET @FLD_MESSAGE='FAIL';
+			  END
+		   END
+	    ELSE IF @in_type=3  -- update 
+		   BEGIN
+		       UPDATE tbl_Product SET prod_name=@inp_prod_name,prod_price=@inp_prod_price,prod_qty=@inp_prod_qty WHERE prod_id=@inp_prod_id;
+			   IF @@ROWCOUNT>0
+			   BEGIN
+					SET @FLD_ACTION_STATUS =0;
+					SET @FLD_MESSAGE='SUCCESS';
+			  END
+			  ELSE
+			  BEGIN
+			  		SET @FLD_ACTION_STATUS =1;
+					SET @FLD_MESSAGE='FAIL';
+			  END
+		   END 
+	     ELSE IF @in_type=4 -- delete
+		    BEGIN
+			   DELETE FROM tbl_Product WHERE prod_id=@inp_prod_id
+				IF @@ROWCOUNT>0
+			   BEGIN
+					SET @FLD_ACTION_STATUS =0;
+					SET @FLD_MESSAGE='SUCCESS';
+			  END
+			  ELSE
+			  BEGIN
+			  		SET @FLD_ACTION_STATUS =1;
+					SET @FLD_MESSAGE='FAIL';
+			  END
+			END
+			ELSE IF @in_type=5 -- Select by ID
+		    BEGIN
+			   SELECT * FROM tbl_Product where prod_id = @inp_prod_id;
+			END
+		ELSE
+			BEGIN
+				SET @FLD_ACTION_STATUS=1
+				SET @FLD_MESSAGE = 'Invalied Type'
+			END 
+	END TRY
+	BEGIN CATCH
+		SET @FLD_ACTION_STATUS=2
+		SET @FLD_MESSAGE = ERROR_MESSAGE()
+	END CATCH
+	SELECT @FLD_ACTION_STATUS FLD_ACTION_STATUS, @FLD_MESSAGE FLD_MESSAGE
+END
